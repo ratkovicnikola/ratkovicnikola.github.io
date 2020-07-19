@@ -19,6 +19,12 @@
   <script type="text/javascript" src="scripts/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="scripts/all-plugins.js"></script>
   <script type="text/javascript" src="scripts/plugins-activate.js"></script>
+  <script type="text/javascript">
+    window.addEventListener('load', function () {
+      var year = new Date().getFullYear();
+      document.getElementById('year').textContent = year;
+    });
+  </script>
   <script
     type="text/javascript"> window.$crisp = []; window.CRISP_WEBSITE_ID = "a8d6da7f-008e-44ad-a3b8-259f6efc92eb"; (function () { d = document; s = d.createElement("script"); s.src = "https://client.crisp.chat/l.js"; s.async = 1; d.getElementsByTagName("head")[0].appendChild(s); })(); </script>
 </head>
@@ -26,7 +32,7 @@
 <body id="page-top">
   <!-- Navigation -->
   <div class="logo">
-    <i aria-hidden="true"><span>Nikola Ratkovic web presentation</span></i>
+    <i aria-hidden="true"><span>Nikola Ratkovic Website</span></i>
   </div>
   <a class="menu-toggle rounded" href="#">
     <i class="fa fa-bars"></i>
@@ -86,6 +92,8 @@
       <div class="block-heading">
         <h2>What Can I offer</h2>
         <p>Software development, consulting and bug investigation.</p>
+        <p>Technologies:</p>
+        <p>JavaScript, HTML, CSS, Node.js, Ionic, Angular, React, TypeScript, MongoDB, AWS, GCP, Git.</p>
       </div>
     </div>
   </section>
@@ -144,7 +152,7 @@
           </a>
         </li>
       </ul>
-      <p class="text-muted small mb-0">Copyright © Nikola Ratkovic 2020</p>
+      <p class="text-muted small mb-0">Copyright © Nikola Ratkovic <label id="year"></label></p>
       <p class="text-muted small mb-0">Designed by <a href="https://www.position2.com/" target="_balnk">Position2</p>
     </div>
   </footer>
