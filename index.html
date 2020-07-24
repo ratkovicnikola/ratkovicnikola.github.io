@@ -23,6 +23,7 @@
     window.addEventListener('load', function () {
       var year = new Date().getFullYear();
       document.getElementById('year').textContent = year;
+      document.getElementById('experience').textContent = (parseInt(year) - 2012).toString();
     });
   </script>
   <script
@@ -79,7 +80,8 @@
           <div class="block-heading">
             <h2>About Me</h2>
           </div>
-          <p class="lead">I'm experienced JavaScript developer with 8+ years of expertise with various domains.
+          <p class="lead">I'm experienced JavaScript developer with <label id="experience"></label>+ years of expertise
+            with various domains.
             I can work on both Web and Mobile applications, with Front-End and Back-End involvement.
           </p>
         </div>
