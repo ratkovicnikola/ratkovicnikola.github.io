@@ -173,3 +173,12 @@
 }
 /*Extra large devices (large desktops, 1200px and up)*/
 @media (min-width: 1200px) {}
+
+.portfolio {
+  display: inline-block;
+}
+
+.portfolio td {
+  padding: 12px;
+  text-align: start;
+}

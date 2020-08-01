@@ -146,7 +146,7 @@ span {
   left: 50%;
 }
 #Banner .content-wrap h1 {
-  font-size: 80px;
+  font-size: 50px;
   margin: 0 0 30px;
   padding: 0;
 }
@@ -444,9 +444,7 @@ span {
   margin-bottom: 40px;
 }
 #Contact .contact-wrapper {
-  border-right: 1px solid #cecece;
-  margin-right: 40px;
-  padding: 0 40px 40px 0;
+  text-align: center;
 }
 #Contact .contact-wrapper h3 {
   font-size: 22px;
@@ -464,7 +462,7 @@ span {
   padding-bottom: 30px;
 }
 #Contact .c-icon {
-  margin-right: 20px;
+  margin-right: 4px;
 }
 #Contact .contact-wrapper span i {
   color: #02ccba;
