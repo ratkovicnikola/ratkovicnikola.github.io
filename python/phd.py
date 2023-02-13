@@ -16,17 +16,17 @@ def getPolynomialValue(x, coefficients, power):
 def getPolynomialText(coefficients, power):
   result = ''
   for i in range(power + 1):
-    coeff = str(round(coefficients[i], 4)) if coefficients[i] < 0 else '+' + str(round(coefficients[i], 4))
+    coefficient = str(round(coefficients[i], 4)) if coefficients[i] < 0 else '+' + str(round(coefficients[i], 4))
     if (i == power):
-      result += coeff
+      result += coefficient
     else:
-      result += coeff + 'x^' + str(power - i)
+      result += coefficient + 'x^' + str(power - i)
 
   result = result[1:] if result[0] == '+' else result
   result = result.replace('^1', '')
   result = result.replace('^2', '\u00b2')
   result = result.replace('^3', '\u00b3')
-  return result
+  return 'y = ' + result
 
 def getCoefficientText(power, value):
   valueString = str(round(value, 4))
@@ -41,8 +41,6 @@ def getCoefficientText(power, value):
 
 def calculateYAxis(xArray, yArray, power):
   coefficients = np.polyfit(xArray, yArray, power)
-  for i in range(power + 1):
-    print(coefficients[i], i)
   result = []
   for i in range(len(xArray)):
     value = xArray[i]
@@ -50,10 +48,18 @@ def calculateYAxis(xArray, yArray, power):
       result.append(getPolynomialValue(value, coefficients, power))
     else:
       result = None
-  d = dict()
-  d['coeff'] = coefficients
-  d['yResult'] = result
-  return d
+  dictionary = dict()
+  dictionary['coefficients'] = coefficients
+  dictionary['yResult'] = result
+  return dictionary
+
+def showPlot(title, xInput, yInput, yResult):
+  plt.title(title)
+  plt.plot(xInput, yInput, 'go', label='Input values' )
+  plt.plot(xInput, yResult, label='Function values' )
+  plt.legend(loc='upper center')
+  plt.grid(True)
+  plt.show()
 
 if (len(sys.argv) != 3):
   print('Please input x and y values as command arguments')
@@ -67,29 +73,14 @@ else:
 
     if (len(xInput) == len(yInput)):
       power = 2
-      calcResult = calculateYAxis(xInput, yInput, power)
-      yResult, coeff = itemgetter('yResult', 'coeff')(calcResult)
+      result = calculateYAxis(xInput, yInput, power)
+      yResult, polynomialCoefficients = itemgetter('yResult', 'coefficients')(result)
+      correlationCoefficient = pd.Series(yInput).corr(pd.Series(yResult))
 
-      yInputCor = pd.Series(yInput)
-      yResultCor = pd.Series(yResult)
-      correlation = yInputCor.corr(yResultCor)
-      print('coeff=', pow(correlation, power))
-
-      polynomial = np.poly1d(coeff)
-      x_axis = np.linspace(0, 2, 1)
-      y_axis = polynomial(x_axis)
-
-      text = getPolynomialText(coeff, power) + '\n' + getCoefficientText(power, correlation)
-
-      plt.title('y = ' + text)
-      plt.plot(x_axis, y_axis)
-      plt.plot( xInput, yInput, 'go', label='Input values' )
-      plt.plot( xInput, yResult, label='Function values' )
-      plt.legend(loc='upper center')
-      plt.grid(True)
-      plt.show()
+      title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCoefficientText(power, correlationCoefficient)
+      showPlot(title, xInput, yInput, yResult)
     else:
       print('X and Y values are not the same length')
   except Exception as err:
-    print(err)
+    print(err) # TODO: remove this error later
     print('Please input only numbers')
