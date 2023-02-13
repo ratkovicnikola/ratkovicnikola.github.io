@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from operator import itemgetter
 import sys
 
 # xInput = [0.06,0.08,0.1,0.12,0.14,0.16,0.18,0.2,0.24,0.28,0.32,0.36,0.4,0.44,0.48,0.52,0.56,0.6,0.64,0.68,0.72,0.76,0.8,0.82,0.84,0.86,0.88,0.9,0.92]
@@ -28,7 +27,7 @@ def getPolynomialText(coefficients, power):
   result = result.replace('^3', '\u00b3')
   return 'y = ' + result
 
-def getCoefficientText(power, value):
+def getCorrelationText(power, value):
   valueString = str(round(value, 4))
   if (power == 1):
     return 'R=' + valueString
@@ -39,19 +38,15 @@ def getCoefficientText(power, value):
   else:
     return ''
 
-def calculateYAxis(xArray, yArray, power):
-  coefficients = np.polyfit(xArray, yArray, power)
+def calculateY(xInput, power, polynomialCoefficients):
   result = []
-  for i in range(len(xArray)):
-    value = xArray[i]
+  for i in range(len(xInput)):
+    value = xInput[i]
     if (power > 0):
-      result.append(getPolynomialValue(value, coefficients, power))
+      result.append(getPolynomialValue(value, polynomialCoefficients, power))
     else:
       result = None
-  dictionary = dict()
-  dictionary['coefficients'] = coefficients
-  dictionary['yResult'] = result
-  return dictionary
+  return result
 
 def showPlot(title, xInput, yInput, yResult):
   plt.title(title)
@@ -73,11 +68,11 @@ else:
 
     if (len(xInput) == len(yInput)):
       power = 2
-      result = calculateYAxis(xInput, yInput, power)
-      yResult, polynomialCoefficients = itemgetter('yResult', 'coefficients')(result)
+      polynomialCoefficients = np.polyfit(xInput, yInput, power)
+      yResult = calculateY(xInput, power, polynomialCoefficients)
       correlationCoefficient = pd.Series(yInput).corr(pd.Series(yResult))
 
-      title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCoefficientText(power, correlationCoefficient)
+      title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(power, correlationCoefficient)
       showPlot(title, xInput, yInput, yResult)
     else:
       print('X and Y values are not the same length')
