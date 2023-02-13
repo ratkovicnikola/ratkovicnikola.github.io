@@ -24,9 +24,20 @@ def getPolynomialText(coefficients, power):
 
   result = result[1:] if result[0] == '+' else result
   result = result.replace('^1', '')
-  # result = result.replace('^2', '\u00b2')
-  # result = result.replace('^3', '\u00b3')
+  result = result.replace('^2', '\u00b2')
+  result = result.replace('^3', '\u00b3')
   return result
+
+def getCoefficientText(power, value):
+  valueString = str(round(value, 4))
+  if (power == 1):
+    return 'R=' + valueString
+  elif (power == 2):
+    return 'R\u00b2=' + valueString
+  elif (power == 3):
+    return 'R\u00b3=' + valueString
+  else:
+    return ''
 
 def calculateYAxis(xArray, yArray, power):
   coefficients = np.polyfit(xArray, yArray, power)
@@ -68,13 +79,13 @@ else:
       x_axis = np.linspace(0, 2, 1)
       y_axis = polynomial(x_axis)
 
-      text = getPolynomialText(coeff, power)
+      text = getPolynomialText(coeff, power) + '\n' + getCoefficientText(power, correlation)
 
       plt.title('y = ' + text)
       plt.plot(x_axis, y_axis)
-      plt.plot( xInput, yInput, 'go' )
-      plt.plot( xInput, yResult )
-      # plt.legend(loc='upper center')
+      plt.plot( xInput, yInput, 'go', label='Input values' )
+      plt.plot( xInput, yResult, label='Function values' )
+      plt.legend(loc='upper center')
       plt.grid(True)
       plt.show()
     else:
