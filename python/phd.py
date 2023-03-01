@@ -66,18 +66,18 @@ def calculateDualModel(xInput, yInput):
   showPlot(title, xInput, yInput, yResult)
 
 def calculatePartialModel(xInput, yInput):
-  xResult = []
+  xInputNew = []
   resultLength = 6 # this will be used for dynamic calculation for best correlation coefficient
   for i in range(len(xInput)):
     if (i < resultLength):
-      xResult.append(math.log10(xInput[i]))
+      xInputNew.append(math.log10(xInput[i]))
   power = 1
-  yInputShort = yInput[0:resultLength]
-  polynomialCoefficients = np.polyfit(xResult, yInputShort, power)
-  yResult = calculateY(xResult, power, polynomialCoefficients)
-  correlationCoefficient = pd.Series(yInputShort).corr(pd.Series(yResult))
+  yInputNew = yInput[0:resultLength]
+  polynomialCoefficients = np.polyfit(xInputNew, yInputNew, power)
+  yResult = calculateY(xInputNew, power, polynomialCoefficients)
+  correlationCoefficient = pd.Series(yInputNew).corr(pd.Series(yResult))
   title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(power, correlationCoefficient)
-  showPlot(title, xResult, yInputShort, yResult)
+  showPlot(title, xInputNew, yInputNew, yResult)
 
 if (len(sys.argv) != 3):
   print('Please input x and y values as command arguments')
