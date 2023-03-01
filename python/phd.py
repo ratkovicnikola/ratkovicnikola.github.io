@@ -65,9 +65,8 @@ def calculateDualModel(xInput, yInput):
   title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(power, correlationCoefficient)
   showPlot(title, xInput, yInput, yResult)
 
-def calculatePartialModel(xInput, yInput):
+def calculatePartialModel(xInput, yInput, resultLength, show):
   xInputNew = []
-  resultLength = 6 # this will be used for dynamic calculation for best correlation coefficient
   for i in range(len(xInput)):
     if (i < resultLength):
       xInputNew.append(math.log10(xInput[i]))
@@ -76,8 +75,21 @@ def calculatePartialModel(xInput, yInput):
   polynomialCoefficients = np.polyfit(xInputNew, yInputNew, power)
   yResult = calculateY(xInputNew, power, polynomialCoefficients)
   correlationCoefficient = pd.Series(yInputNew).corr(pd.Series(yResult))
-  title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(power, correlationCoefficient)
-  showPlot(title, xInputNew, yInputNew, yResult)
+  if (show):
+    title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(power, correlationCoefficient)
+    showPlot(title, xInputNew, yInputNew, yResult)
+  else:
+    return correlationCoefficient
+  
+def getBestPartialModel(xInput, yInput):
+  partialModelCoefficient = 0
+  partialModelIndex = 0
+  for i in range(5, 8):
+    result = calculatePartialModel(xInput, yInput, i, False)
+    if (result > partialModelCoefficient):
+      partialModelIndex = i
+      partialModelCoefficient = result
+  calculatePartialModel(xInput, yInput, partialModelIndex, True)
 
 if (len(sys.argv) != 3):
   print('Please input x and y values as command arguments')
@@ -91,7 +103,7 @@ else:
 
     if (len(xInput) == len(yInput)):
       # calculateDualModel(xInput, yInput)
-      calculatePartialModel(xInput, yInput)
+      getBestPartialModel(xInput, yInput)
     else:
       print('X and Y values are not the same length')
   except Exception as err:
