@@ -50,11 +50,23 @@ def showPlot(title, xInput, yInput, yResult):
   plt.grid(True)
   plt.show()
 
+def showSubplots(title1, title2, xInput1, yInput1, yResult1, xInput2, yInput2, yResult2, isPartialWinner, rightModel):
+  fig, axs = plt.subplots(1, 2, constrained_layout=True)
+  suptitlePrefix = 'Right ' if rightModel else 'Left '
+  fig.suptitle(suptitlePrefix + 'partial and adsorption model')
+  axs[0].plot(xInput1, yInput1, 'go', label='Input values' )
+  axs[0].plot(xInput1, yResult1, label='Function values' )
+  axs[0].set_title(title1 + ' (winner)' if isPartialWinner else title1)
+  axs[1].plot(xInput2, yInput2, 'go', label='Input values' )
+  axs[1].plot(xInput2, yResult2, label='Function values' )
+  axs[1].set_title(title2 if isPartialWinner else title2 + ' (winner)')
+  plt.show()
+
 def calculateDualModel(xInput, yInput):
   power = 2
   polynomialCoefficients = np.polyfit(xInput, yInput, power)
   yResult = calculateY(xInput, power, polynomialCoefficients)
-  correlationCoefficient = pd.Series(yInput).corr(pd.Series(yResult))
+  correlationCoefficient = pd.Series(yInput).corr(pd.Series(yResult)) * pd.Series(yInput).corr(pd.Series(yResult)) # R^2
   title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(correlationCoefficient)
   showPlot(title, xInput, yInput, yResult)
 
@@ -68,45 +80,59 @@ def getSlicedModelXInput(xInput, resultLength, isPartial):
         result.append(math.log10(xInput[i]))
     return result
 
-def calculateSlicedModel(xInput, yInput, resultLength, show, isPartial):
+def calculateSlicedModel(xInput, yInput, resultLength, isPartial):
   xInputNew = getSlicedModelXInput(xInput, resultLength, isPartial)
   power = 1
   yInputNew = yInput[0:resultLength]
   polynomialCoefficients = np.polyfit(xInputNew, yInputNew, power)
   yResult = calculateY(xInputNew, power, polynomialCoefficients)
   correlationCoefficient = pd.Series(yInputNew).corr(pd.Series(yResult)) * pd.Series(yInputNew).corr(pd.Series(yResult)) # R^2
-  if (show):
-    title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(correlationCoefficient)
-    showPlot(title, xInputNew, yInputNew, yResult)
-  else:
-    return correlationCoefficient
+
+  d = dict()
+  d['correlationCoefficient'] = correlationCoefficient
+  d['xInputNew'] = xInputNew
+  d['yInputNew'] = yInputNew
+  d['yResult'] = yResult
+  d['title'] = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(correlationCoefficient)
+  return d
   
 def getSlicedModelValues(xInput, yInput, rangeStart, rangeEnd, isPartial):
   modelCoefficient = 0
   modelIndex = 0
   coefficientSum = 0
   for i in range(rangeStart, rangeEnd):
-    result = calculateSlicedModel(xInput, yInput, i, False, isPartial)
+    result = calculateSlicedModel(xInput, yInput, i, isPartial)['correlationCoefficient']
     if (result > modelCoefficient):
       modelIndex = i
       modelCoefficient = result
     coefficientSum += result
+
   d = dict()
   d['modelCoefficient'] = modelCoefficient
   d['modelIndex'] = modelIndex
   d['coefficientSum'] = coefficientSum
   return d
   
-def getBestSlicedModel(xInput, yInput):
+def getBestSlicedModel(xInput, yInput, rightModel):
   rangeStart = 5
   rangeEnd = 8
+  if (rightModel):
+    xInput = list(reversed(xInput[-rangeEnd:]))
+    yInput = list(reversed(yInput[-rangeEnd:]))
+
   partialModelValues = getSlicedModelValues(xInput, yInput, rangeStart, rangeEnd, True)
   adsorptionModelValues = getSlicedModelValues(xInput, yInput, rangeStart, rangeEnd, False)
 
   if (partialModelValues['coefficientSum'] > adsorptionModelValues['coefficientSum']):
-    calculateSlicedModel(xInput, yInput, partialModelValues['modelIndex'], True, True)
+    result1 = calculateSlicedModel(xInput, yInput, partialModelValues['modelIndex'], True)
+    result2 = calculateSlicedModel(xInput, yInput, partialModelValues['modelIndex'], False)
+    showSubplots(result1['title'], result2['title'], result1['xInputNew'], result1['yInputNew'], result1['yResult'],
+      result2['xInputNew'], result2['yInputNew'], result2['yResult'], True, rightModel)
   else:
-    calculateSlicedModel(xInput, yInput, adsorptionModelValues['modelIndex'], True, False)
+    result1 = calculateSlicedModel(xInput, yInput, adsorptionModelValues['modelIndex'], True)
+    result2 = calculateSlicedModel(xInput, yInput, adsorptionModelValues['modelIndex'], False)
+    showSubplots(result1['title'], result2['title'], result1['xInputNew'], result1['yInputNew'], result1['yResult'],
+      result2['xInputNew'], result2['yInputNew'], result2['yResult'], False, rightModel)
 
 if (len(sys.argv) != 3):
   print('Please input x and y values as command arguments')
@@ -119,8 +145,9 @@ else:
     yInput = list(map(float, args2))
 
     if (len(xInput) == len(yInput)):
-      # calculateDualModel(xInput, yInput)
-      getBestSlicedModel(xInput, yInput)
+      calculateDualModel(xInput, yInput)
+      getBestSlicedModel(xInput, yInput, False)
+      getBestSlicedModel(xInput, yInput, True)
     else:
       print('X and Y values are not the same length')
   except Exception as err:
