@@ -114,6 +114,7 @@ def getSlicedModelValues(xInput, yInput, rangeStart, rangeEnd, isPartial):
   return d
   
 def getBestSlicedModel(xInput, yInput, rightModel):
+  # adjust these two values below if needed
   rangeStart = 5
   rangeEnd = 8
   if (rightModel):
@@ -123,16 +124,13 @@ def getBestSlicedModel(xInput, yInput, rightModel):
   partialModelValues = getSlicedModelValues(xInput, yInput, rangeStart, rangeEnd, True)
   adsorptionModelValues = getSlicedModelValues(xInput, yInput, rangeStart, rangeEnd, False)
 
-  if (partialModelValues['coefficientSum'] > adsorptionModelValues['coefficientSum']):
-    result1 = calculateSlicedModel(xInput, yInput, partialModelValues['modelIndex'], True)
-    result2 = calculateSlicedModel(xInput, yInput, partialModelValues['modelIndex'], False)
-    showSubplots(result1['title'], result2['title'], result1['xInputNew'], result1['yInputNew'], result1['yResult'],
-      result2['xInputNew'], result2['yInputNew'], result2['yResult'], True, rightModel)
-  else:
-    result1 = calculateSlicedModel(xInput, yInput, adsorptionModelValues['modelIndex'], True)
-    result2 = calculateSlicedModel(xInput, yInput, adsorptionModelValues['modelIndex'], False)
-    showSubplots(result1['title'], result2['title'], result1['xInputNew'], result1['yInputNew'], result1['yResult'],
-      result2['xInputNew'], result2['yInputNew'], result2['yResult'], False, rightModel)
+  isPartialWinner = partialModelValues['coefficientSum'] > adsorptionModelValues['coefficientSum']
+  winnerIndex = partialModelValues['modelIndex'] if isPartialWinner else adsorptionModelValues['modelIndex']
+  # calculation runs again because in the first run winner is unknown
+  result1 = calculateSlicedModel(xInput, yInput, winnerIndex, True)
+  result2 = calculateSlicedModel(xInput, yInput, winnerIndex, False)
+  showSubplots(result1['title'], result2['title'], result1['xInputNew'], result1['yInputNew'], result1['yResult'],
+    result2['xInputNew'], result2['yInputNew'], result2['yResult'], isPartialWinner, rightModel)
 
 if (len(sys.argv) != 3):
   print('Please input x and y values as command arguments')
