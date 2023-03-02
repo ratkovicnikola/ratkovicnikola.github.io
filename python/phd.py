@@ -28,16 +28,9 @@ def getPolynomialText(coefficients, power):
   result = result.replace('^3', '\u00b3')
   return 'y = ' + result
 
-def getCorrelationText(power, value):
+def getCorrelationText(value):
   valueString = str(round(value, 4))
-  if (power == 1):
-    return 'R=' + valueString
-  elif (power == 2):
-    return 'R\u00b2=' + valueString
-  elif (power == 3):
-    return 'R\u00b3=' + valueString
-  else:
-    return ''
+  return 'R\u00b2=' + valueString
 
 def calculateY(xInput, power, polynomialCoefficients):
   result = []
@@ -65,31 +58,56 @@ def calculateDualModel(xInput, yInput):
   title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(power, correlationCoefficient)
   showPlot(title, xInput, yInput, yResult)
 
-def calculatePartialModel(xInput, yInput, resultLength, show):
-  xInputNew = []
-  for i in range(len(xInput)):
-    if (i < resultLength):
-      xInputNew.append(math.log10(xInput[i]))
+def getSlicedModelXValues(xInput, resultLength, isPartial):
+  if (isPartial):
+    return xInput[0:resultLength]
+  else:
+    result = []
+    for i in range(len(xInput)):
+      if (i < resultLength):
+        result.append(math.log10(xInput[i]))
+    return result
+
+def calculateSlicedModel(xInput, yInput, resultLength, show, isPartial):
+  xInputNew = getSlicedModelXValues(xInput, resultLength, isPartial)
   power = 1
   yInputNew = yInput[0:resultLength]
   polynomialCoefficients = np.polyfit(xInputNew, yInputNew, power)
   yResult = calculateY(xInputNew, power, polynomialCoefficients)
-  correlationCoefficient = pd.Series(yInputNew).corr(pd.Series(yResult))
+  correlationCoefficient = pd.Series(yInputNew).corr(pd.Series(yResult)) * pd.Series(yInputNew).corr(pd.Series(yResult)) # R^2
   if (show):
     title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(power, correlationCoefficient)
     showPlot(title, xInputNew, yInputNew, yResult)
   else:
     return correlationCoefficient
   
-def getBestPartialModel(xInput, yInput):
+def getBestSlicedModel(xInput, yInput):
+  rangeStart = 5
+  rangeEnd = 8
   partialModelCoefficient = 0
   partialModelIndex = 0
-  for i in range(5, 8):
-    result = calculatePartialModel(xInput, yInput, i, False)
+  partialCoefficientSum = 0
+  for i in range(rangeStart, rangeEnd):
+    result = calculateSlicedModel(xInput, yInput, i, False, True)
     if (result > partialModelCoefficient):
       partialModelIndex = i
       partialModelCoefficient = result
-  calculatePartialModel(xInput, yInput, partialModelIndex, True)
+    partialCoefficientSum += result
+  
+  adsorptionModelCoefficient = 0
+  adsorptionModelIndex = 0
+  adsorptionCoefficientSum = 0
+  for i in range(rangeStart, rangeEnd):
+    result = calculateSlicedModel(xInput, yInput, i, False, False)
+    if (result > adsorptionModelCoefficient):
+      adsorptionModelIndex = i
+      adsorptionModelCoefficient = result
+    adsorptionCoefficientSum += result
+
+  if (partialCoefficientSum > adsorptionCoefficientSum):
+    calculateSlicedModel(xInput, yInput, partialModelIndex, True, True)
+  else:
+    calculateSlicedModel(xInput, yInput, adsorptionModelIndex, True, False)
 
 if (len(sys.argv) != 3):
   print('Please input x and y values as command arguments')
@@ -103,7 +121,7 @@ else:
 
     if (len(xInput) == len(yInput)):
       # calculateDualModel(xInput, yInput)
-      getBestPartialModel(xInput, yInput)
+      getBestSlicedModel(xInput, yInput)
     else:
       print('X and Y values are not the same length')
   except Exception as err:
