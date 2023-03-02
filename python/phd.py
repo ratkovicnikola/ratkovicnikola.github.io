@@ -55,10 +55,10 @@ def calculateDualModel(xInput, yInput):
   polynomialCoefficients = np.polyfit(xInput, yInput, power)
   yResult = calculateY(xInput, power, polynomialCoefficients)
   correlationCoefficient = pd.Series(yInput).corr(pd.Series(yResult))
-  title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(power, correlationCoefficient)
+  title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(correlationCoefficient)
   showPlot(title, xInput, yInput, yResult)
 
-def getSlicedModelXValues(xInput, resultLength, isPartial):
+def getSlicedModelXInput(xInput, resultLength, isPartial):
   if (isPartial):
     return xInput[0:resultLength]
   else:
@@ -69,45 +69,44 @@ def getSlicedModelXValues(xInput, resultLength, isPartial):
     return result
 
 def calculateSlicedModel(xInput, yInput, resultLength, show, isPartial):
-  xInputNew = getSlicedModelXValues(xInput, resultLength, isPartial)
+  xInputNew = getSlicedModelXInput(xInput, resultLength, isPartial)
   power = 1
   yInputNew = yInput[0:resultLength]
   polynomialCoefficients = np.polyfit(xInputNew, yInputNew, power)
   yResult = calculateY(xInputNew, power, polynomialCoefficients)
   correlationCoefficient = pd.Series(yInputNew).corr(pd.Series(yResult)) * pd.Series(yInputNew).corr(pd.Series(yResult)) # R^2
   if (show):
-    title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(power, correlationCoefficient)
+    title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(correlationCoefficient)
     showPlot(title, xInputNew, yInputNew, yResult)
   else:
     return correlationCoefficient
   
+def getSlicedModelValues(xInput, yInput, rangeStart, rangeEnd, isPartial):
+  modelCoefficient = 0
+  modelIndex = 0
+  coefficientSum = 0
+  for i in range(rangeStart, rangeEnd):
+    result = calculateSlicedModel(xInput, yInput, i, False, isPartial)
+    if (result > modelCoefficient):
+      modelIndex = i
+      modelCoefficient = result
+    coefficientSum += result
+  d = dict()
+  d['modelCoefficient'] = modelCoefficient
+  d['modelIndex'] = modelIndex
+  d['coefficientSum'] = coefficientSum
+  return d
+  
 def getBestSlicedModel(xInput, yInput):
   rangeStart = 5
   rangeEnd = 8
-  partialModelCoefficient = 0
-  partialModelIndex = 0
-  partialCoefficientSum = 0
-  for i in range(rangeStart, rangeEnd):
-    result = calculateSlicedModel(xInput, yInput, i, False, True)
-    if (result > partialModelCoefficient):
-      partialModelIndex = i
-      partialModelCoefficient = result
-    partialCoefficientSum += result
-  
-  adsorptionModelCoefficient = 0
-  adsorptionModelIndex = 0
-  adsorptionCoefficientSum = 0
-  for i in range(rangeStart, rangeEnd):
-    result = calculateSlicedModel(xInput, yInput, i, False, False)
-    if (result > adsorptionModelCoefficient):
-      adsorptionModelIndex = i
-      adsorptionModelCoefficient = result
-    adsorptionCoefficientSum += result
+  partialModelValues = getSlicedModelValues(xInput, yInput, rangeStart, rangeEnd, True)
+  adsorptionModelValues = getSlicedModelValues(xInput, yInput, rangeStart, rangeEnd, False)
 
-  if (partialCoefficientSum > adsorptionCoefficientSum):
-    calculateSlicedModel(xInput, yInput, partialModelIndex, True, True)
+  if (partialModelValues['coefficientSum'] > adsorptionModelValues['coefficientSum']):
+    calculateSlicedModel(xInput, yInput, partialModelValues['modelIndex'], True, True)
   else:
-    calculateSlicedModel(xInput, yInput, adsorptionModelIndex, True, False)
+    calculateSlicedModel(xInput, yInput, adsorptionModelValues['modelIndex'], True, False)
 
 if (len(sys.argv) != 3):
   print('Please input x and y values as command arguments')
