@@ -26,11 +26,17 @@ def getPolynomialText(coefficients, power):
   result = result.replace('^1', '')
   result = result.replace('^2', '\u00b2')
   result = result.replace('^3', '\u00b3')
-  return 'y = ' + result
+  return 'y=' + result
 
 def getCorrelationText(value):
   valueString = str(round(value, 4))
   return 'R\u00b2=' + valueString
+
+def getMinValuesText(coefficients):
+  fiMin = -coefficients[1] / (2 * coefficients[0])
+  xMin = ((4 * coefficients[0] * coefficients[2]) - math.pow(coefficients[1], 2)) / (4 * coefficients[0])
+  xMinAntilog = math.pow(10, xMin)
+  return ', \u03A6min=' + str(round(fiMin, 4)) + ', Xmin=' + str(round(xMin, 4)) + ', k\'=' + str(round(xMinAntilog, 4))
 
 def calculateY(xInput, power, polynomialCoefficients):
   result = []
@@ -42,6 +48,7 @@ def calculateY(xInput, power, polynomialCoefficients):
       result = None
   return result
 
+# write to CSV too
 def showPlot(title, xInput, yInput, yResult):
   plt.title(title)
   plt.plot(xInput, yInput, 'go', label='Input values' )
@@ -50,6 +57,7 @@ def showPlot(title, xInput, yInput, yResult):
   plt.grid(True)
   plt.show()
 
+# write to CSV too
 def showSubplots(title1, title2, xInput1, yInput1, yResult1, xInput2, yInput2, yResult2, isPartialWinner, rightModel):
   fig, axs = plt.subplots(1, 2, constrained_layout=True)
   suptitlePrefix = 'Right ' if rightModel else 'Left '
@@ -67,7 +75,7 @@ def calculateDualModel(xInput, yInput):
   polynomialCoefficients = np.polyfit(xInput, yInput, power)
   yResult = calculateY(xInput, power, polynomialCoefficients)
   correlationCoefficient = pd.Series(yInput).corr(pd.Series(yResult)) * pd.Series(yInput).corr(pd.Series(yResult)) # R^2
-  title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(correlationCoefficient)
+  title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(correlationCoefficient) + getMinValuesText(polynomialCoefficients)
   showPlot(title, xInput, yInput, yResult)
 
 def getSlicedModelXInput(xInput, resultLength, isPartial):
@@ -126,7 +134,6 @@ def getBestSlicedModel(xInput, yInput, rightModel):
 
   isPartialWinner = partialModelValues['coefficientSum'] > adsorptionModelValues['coefficientSum']
   winnerIndex = partialModelValues['modelIndex'] if isPartialWinner else adsorptionModelValues['modelIndex']
-  # calculation runs again because in the first run winner is unknown
   result1 = calculateSlicedModel(xInput, yInput, winnerIndex, True)
   result2 = calculateSlicedModel(xInput, yInput, winnerIndex, False)
   showSubplots(result1['title'], result2['title'], result1['xInputNew'], result1['yInputNew'], result1['yResult'],
