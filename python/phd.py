@@ -3,17 +3,20 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import sys
 import math
+import csv
+
+decimals = 4
 
 def getPolynomialValue(x, coefficients, power):
   result = 0
   for i in range(power + 1):
     result += pow(x, power - i) * coefficients[i]
-  return result
+  return round(result, decimals)
 
 def getPolynomialText(coefficients, power):
   result = ''
   for i in range(power + 1):
-    coefficient = str(round(coefficients[i], 4)) if coefficients[i] < 0 else '+' + str(round(coefficients[i], 4))
+    coefficient = str(round(coefficients[i], decimals)) if coefficients[i] < 0 else '+' + str(round(coefficients[i], decimals))
     if (i == power):
       result += coefficient
     else:
@@ -26,14 +29,14 @@ def getPolynomialText(coefficients, power):
   return 'y=' + result
 
 def getCorrelationText(value):
-  valueString = str(round(value, 4))
+  valueString = str(round(value, decimals))
   return 'R\u00b2=' + valueString
 
 def getMinValuesText(coefficients):
   fiMin = -coefficients[1] / (2 * coefficients[0])
-  xMin = ((4 * coefficients[0] * coefficients[2]) - math.pow(coefficients[1], 2)) / (4 * coefficients[0])
+  xMin = ((decimals * coefficients[0] * coefficients[2]) - math.pow(coefficients[1], 2)) / (decimals * coefficients[0])
   xMinAntilog = math.pow(10, xMin)
-  return ', \u03A6min=' + str(round(fiMin, 4)) + ', Xmin=' + str(round(xMin, 4)) + ', k\'=' + str(round(xMinAntilog, 4))
+  return ', \u03A6min=' + str(round(fiMin, decimals)) + ', Xmin=' + str(round(xMin, decimals)) + ', k\'=' + str(round(xMinAntilog, decimals))
 
 def calculateY(xInput, power, polynomialCoefficients):
   result = []
@@ -45,17 +48,20 @@ def calculateY(xInput, power, polynomialCoefficients):
       result = None
   return result
 
-# write to CSV
-def showPlot(title, xInput, yInput, yResult):
+def showPlotAndWriteToCSV(title, xInput, yInput, yResult):
   plt.title(title)
   plt.plot(xInput, yInput, 'go', label='Input values' )
   plt.plot(xInput, yResult, label='Function values' )
   plt.legend(loc='upper center')
   plt.grid(True)
   plt.show()
+  with open('./output1.csv', 'w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerow(['xInput', 'yInput', 'yResult', title])
+    for i in range(len(xInput)):
+      writer.writerow([xInput[i], yInput[i], yResult[i]])
 
-# write to CSV
-def showSubplots(title1, title2, xInput1, yInput1, yResult1, xInput2, yInput2, yResult2, isPartialWinner, rightModel):
+def showSubplotsAndWriteToCSV(title1, title2, xInput1, yInput1, yResult1, xInput2, yInput2, yResult2, isPartialWinner, rightModel):
   fig, axs = plt.subplots(1, 2, constrained_layout=True)
   suptitlePrefix = 'Right ' if rightModel else 'Left '
   fig.suptitle(suptitlePrefix + 'partial and adsorption model')
@@ -66,6 +72,12 @@ def showSubplots(title1, title2, xInput1, yInput1, yResult1, xInput2, yInput2, y
   axs[1].plot(xInput2, yResult2, label='Function values' )
   axs[1].set_title(title2 if isPartialWinner else title2 + ' (winner)')
   plt.show()
+  fileSuffix = '3' if rightModel else '2'
+  with open('./output' + fileSuffix + '.csv', 'w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerow(['xInput1', 'yInput1', 'yResult1', 'xInput2', 'yInput2', 'yResult2', title1, title2])
+    for i in range(len(xInput1)):
+      writer.writerow([xInput1[i], yInput1[i], yResult1[i], xInput2[i], yInput2[i], yResult2[i]])
 
 def calculateDualModel(xInput, yInput):
   power = 2
@@ -73,7 +85,7 @@ def calculateDualModel(xInput, yInput):
   yResult = calculateY(xInput, power, polynomialCoefficients)
   correlationCoefficient = pd.Series(yInput).corr(pd.Series(yResult)) * pd.Series(yInput).corr(pd.Series(yResult)) # R^2
   title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(correlationCoefficient) + getMinValuesText(polynomialCoefficients)
-  showPlot(title, xInput, yInput, yResult)
+  showPlotAndWriteToCSV(title, xInput, yInput, yResult)
 
 def getSlicedModelXInput(xInput, resultLength, isPartial):
   if (isPartial):
@@ -82,7 +94,7 @@ def getSlicedModelXInput(xInput, resultLength, isPartial):
     result = []
     for i in range(len(xInput)):
       if (i < resultLength):
-        result.append(math.log10(xInput[i]))
+        result.append(round(math.log10(xInput[i]), decimals))
     return result
 
 def calculateSlicedModel(xInput, yInput, resultLength, isPartial):
@@ -133,13 +145,13 @@ def getBestSlicedModel(xInput, yInput, rightModel):
   winnerIndex = partialModelValues['modelIndex'] if isPartialWinner else adsorptionModelValues['modelIndex']
   result1 = calculateSlicedModel(xInput, yInput, winnerIndex, True)
   result2 = calculateSlicedModel(xInput, yInput, winnerIndex, False)
-  showSubplots(result1['title'], result2['title'], result1['xInputNew'], result1['yInputNew'], result1['yResult'],
+  showSubplotsAndWriteToCSV(result1['title'], result2['title'], result1['xInputNew'], result1['yInputNew'], result1['yResult'],
     result2['xInputNew'], result2['yInputNew'], result2['yResult'], isPartialWinner, rightModel)
 
 def getInputValues():
   d = dict()
   try:
-    input = pd.read_csv('./inputx.csv')
+    input = pd.read_csv('./input.csv')
     inputColumns = pd.DataFrame(input, columns=['xInput', 'yInput'])
     d['xInput'] = inputColumns.get('xInput')
     d['yInput'] = inputColumns.get('yInput')
