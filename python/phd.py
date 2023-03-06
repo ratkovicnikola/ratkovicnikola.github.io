@@ -4,9 +4,6 @@ import pandas as pd
 import sys
 import math
 
-# xInput = [0.06,0.08,0.1,0.12,0.14,0.16,0.18,0.2,0.24,0.28,0.32,0.36,0.4,0.44,0.48,0.52,0.56,0.6,0.64,0.68,0.72,0.76,0.8,0.82,0.84,0.86,0.88,0.9,0.92]
-# yInput = [0.9452,0.7306,0.6237,0.4570,0.3858,0.2874,0.2044,0.1393,0.0187,-0.1101,-0.2288,-0.2921,-0.3609,-0.3840,-0.3970,-0.3901,-0.3613,-0.3328,-0.2796,-0.2031,-0.0835,0.1281,0.3096,0.3788,0.4540,0.5625,0.6848,0.8332,0.9311]
-
 def getPolynomialValue(x, coefficients, power):
   result = 0
   for i in range(power + 1):
@@ -48,7 +45,7 @@ def calculateY(xInput, power, polynomialCoefficients):
       result = None
   return result
 
-# write to CSV too
+# write to CSV
 def showPlot(title, xInput, yInput, yResult):
   plt.title(title)
   plt.plot(xInput, yInput, 'go', label='Input values' )
@@ -57,7 +54,7 @@ def showPlot(title, xInput, yInput, yResult):
   plt.grid(True)
   plt.show()
 
-# write to CSV too
+# write to CSV
 def showSubplots(title1, title2, xInput1, yInput1, yResult1, xInput2, yInput2, yResult2, isPartialWinner, rightModel):
   fig, axs = plt.subplots(1, 2, constrained_layout=True)
   suptitlePrefix = 'Right ' if rightModel else 'Left '
@@ -139,15 +136,27 @@ def getBestSlicedModel(xInput, yInput, rightModel):
   showSubplots(result1['title'], result2['title'], result1['xInputNew'], result1['yInputNew'], result1['yResult'],
     result2['xInputNew'], result2['yInputNew'], result2['yResult'], isPartialWinner, rightModel)
 
-if (len(sys.argv) != 3):
-  print('Please input x and y values as command arguments')
-else:
-  args1 = sys.argv[1].split(',')
-  args2 = sys.argv[2].split(',')
-
+def getInputValues():
+  d = dict()
   try:
-    xInput = list(map(float, args1))
-    yInput = list(map(float, args2))
+    input = pd.read_csv('./inputx.csv')
+    inputColumns = pd.DataFrame(input, columns=['xInput', 'yInput'])
+    d['xInput'] = inputColumns.get('xInput')
+    d['yInput'] = inputColumns.get('yInput')
+  except Exception as err:
+    if (len(sys.argv) != 3):
+      print('Please input valid X and Y values from CSV or command line arguments')
+      d = None
+    else:
+      d['xInput'] = sys.argv[1].split(',')
+      d['yInput'] = sys.argv[2].split(',')
+  return d
+
+try:
+  input = getInputValues()
+  if (input):
+    xInput = list(map(float, input['xInput']))
+    yInput = list(map(float, input['yInput']))
 
     if (len(xInput) == len(yInput)):
       calculateDualModel(xInput, yInput)
@@ -155,6 +164,6 @@ else:
       getBestSlicedModel(xInput, yInput, True)
     else:
       print('X and Y values are not the same length')
-  except Exception as err:
-    print(err) # TODO: remove this error later
-    print('Please input only numbers')
+except Exception as err:
+  print(err)
+  print('Error occurred, please try with different input values')
