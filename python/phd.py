@@ -63,7 +63,7 @@ def showPlotAndWriteToCSV(title, xInput, yInput, yResult):
 
 def showSubplotsAndWriteToCSV(title1, title2, xInput1, yInput1, yResult1, xInput2, yInput2, yResult2, isPartialWinner, rightModel):
   fig, axs = plt.subplots(1, 2, constrained_layout=True)
-  suptitlePrefix = 'Right ' if rightModel else 'Left '
+  suptitlePrefix = 'RP-HPLC ' if rightModel else 'HILIC '
   fig.suptitle(suptitlePrefix + 'partial and adsorption model')
   axs[0].plot(xInput1, yInput1, 'go', label='Input values' )
   axs[0].plot(xInput1, yResult1, label='Function values' )
