@@ -3,7 +3,7 @@
 ## Install Python version 3 for your operating system
 
 Download Python installer from this link and install it on your machine (if not installed previously)
-https://www.python.org/downloads/.\
+https://www.python.org/downloads/ \
 This script can work on Python 2, but it is recommended to use it with Python 3.
 
 ## Install Python packages that are used in the script
