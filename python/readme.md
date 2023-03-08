@@ -20,10 +20,10 @@ This script can work with Python 2, but it is recommended to use it with Python 
 
 ## Pass input values to the script
 
-In order to pass input values to the script, use eithier CSV file with name **input.csv** or send the values via
+In order to pass the input values to the script, use eithier CSV file with name **input.csv** or send the values via
 command line using comma separated values.
 
-Only numbers are allowed as values. For other values, script will return error message.
+Script can only accept numbers as input values.
 
 ### Example using CSV file (input.csv):
 
@@ -39,10 +39,10 @@ Only numbers are allowed as values. For other values, script will return error m
 
 python3 rm.py 0.06,0.08,0.1,0.12 0.1,0.2,0.3,0.4
 
-### Results and errors
+## Results and errors
 
 If input values are sent correctly, script will show 3 plots with **Dual**, **HILIC** and **RP-HPLC** models respectively.\
 Winers for **HILIC** and **RP-HPLC** models will be shown in the plots.\
-Calculated values will also be stored in files **output1.csv**, **output2.csv** and **output3.csv** files.
+Calculated values will also be stored in files **output1.csv**, **output2.csv** and **output3.csv**.
 
-If there is an error during script run, it will be written in console (command line or terminal).
+If there is an error during the script run, it will be written in console (command line or terminal).
