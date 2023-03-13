@@ -1,4 +1,4 @@
-def isPerfectNumber(value):
+def isPrimeNumber(value):
   result = True
   for x in range(value):
     divider = x + 1
@@ -6,7 +6,7 @@ def isPerfectNumber(value):
       result = False
   return result
 
-def isPalindrom(value):
+def isPalindrome(value):
   result = True
   length = len(value)
   for x in range(length):
@@ -15,3 +15,11 @@ def isPalindrom(value):
     if (x > length / 2): # optimization to only go through half of the string
       break
   return result
+
+def isPerfectNumber(value):
+  dividerSum = 0
+  for x in range(value):
+    divider = x + 1
+    if (divider < value and value % divider == 0):
+      dividerSum += divider
+  return value == dividerSum

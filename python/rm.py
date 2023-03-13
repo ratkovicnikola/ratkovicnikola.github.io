@@ -34,9 +34,9 @@ def getCorrelationText(value):
 
 def getMinValuesText(coefficients):
   fiMin = -coefficients[1] / (2 * coefficients[0])
-  xMin = ((decimals * coefficients[0] * coefficients[2]) - math.pow(coefficients[1], 2)) / (decimals * coefficients[0])
-  xMinAntilog = math.pow(10, xMin)
-  return ', \u03A6min=' + str(round(fiMin, decimals)) + ', Xmin=' + str(round(xMin, decimals)) + ', k\'=' + str(round(xMinAntilog, decimals))
+  yMin = ((decimals * coefficients[0] * coefficients[2]) - math.pow(coefficients[1], 2)) / (decimals * coefficients[0])
+  yMinAntilog = math.pow(10, yMin)
+  return ', Fimin=' + str(round(fiMin, decimals)) + ', yMin=' + str(round(yMin, decimals)) + ', k\'=' + str(round(yMinAntilog, decimals))
 
 def calculateY(xInput, power, polynomialCoefficients):
   result = []
@@ -52,7 +52,6 @@ def showPlotAndWriteToCSV(title, xInput, yInput, yResult):
   plt.title(title)
   plt.plot(xInput, yInput, 'go', label='Input values' )
   plt.plot(xInput, yResult, label='Function values' )
-  plt.legend(loc='upper center')
   plt.grid(True)
   plt.show()
   with open('./output1.csv', 'w', newline='') as file:
